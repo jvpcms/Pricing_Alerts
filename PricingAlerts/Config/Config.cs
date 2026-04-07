@@ -1,9 +1,9 @@
 namespace PricingAlerts.Config;
 
-public class Config
+public class AppConfig
 {
     private readonly string _envFile;
-    public Config(string envFile = ".env")
+    public AppConfig(string envFile = ".env")
     {
         _envFile = envFile;
     }
