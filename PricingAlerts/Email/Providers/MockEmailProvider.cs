@@ -1,4 +1,4 @@
-namespace PricingAlerts.Email;
+namespace PricingAlerts.Email.Providers;
 
 public class MockEmailProvider : IEmailProvider
 {

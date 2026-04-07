@@ -5,13 +5,10 @@ namespace PricingAlerts.Pricing;
 
 public static class PricingProviderFactory
 {
-    public static IPricingProvider GetPricingProvider(bool useMock = false, AppConfig? config = null)
+    public static IPricingProvider GetPricingProvider(AppConfig config, bool useMock = false)
     {
         if (useMock)
             return new MockPricingProvider();
-
-        if (config is null)
-            throw new ArgumentNullException(nameof(config), "Config is required for real providers.");
 
         return new BrapiPricingProvider(config.BrapiApiKey);
     }
