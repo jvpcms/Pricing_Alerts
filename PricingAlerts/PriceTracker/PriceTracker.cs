@@ -44,7 +44,17 @@ public class PriceTracker
 
     private async Task CheckPrice()
     {
-        var price = await _pricingProvider.GetCurrentPrice(_ticker);
+        decimal price;
+        try
+        {
+            price = await _pricingProvider.GetCurrentPrice(_ticker);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[PriceTracker] Failed to fetch price for '{_ticker}': {ex.Message}");
+            return;
+        }
+
         Console.WriteLine($"[PriceTracker] {_ticker} current price: R$ {price}");
 
         var newStatus = price < _lowPrice ? PriceStatus.Low
@@ -65,6 +75,13 @@ public class PriceTracker
             _                => ($"{_ticker} Price Alert — Back to Normal", $"{_ticker} is back to R$ {price}, within the normal range (R$ {_lowPrice} – R$ {_highPrice})."),
         };
 
-        await _emailProvider.SendEmail(_alertTo, subject, content);
+        try
+        {
+            await _emailProvider.SendEmail(_alertTo, subject, content);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[PriceTracker] Failed to send email: {ex.Message}");
+        }
     }
 }
