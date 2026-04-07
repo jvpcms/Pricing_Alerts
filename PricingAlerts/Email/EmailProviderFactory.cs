@@ -5,7 +5,7 @@ namespace PricingAlerts.Email;
 
 public static class EmailProviderFactory
 {
-    public static IEmailProvider GetEmailProvider(AppConfig config, bool useMock = true)
+    public static IEmailProvider GetEmailProvider(AppConfig config, bool useMock = false)
     {
         if (useMock)
             return new MockEmailProvider();
