@@ -20,7 +20,8 @@ public static class EnvLoader
             var key = trimmed[..idx].Trim();
             var value = trimmed[(idx + 1)..].Trim().Trim('"');
 
-            Environment.SetEnvironmentVariable(key, value);
+            if (Environment.GetEnvironmentVariable(key) == null)
+                Environment.SetEnvironmentVariable(key, value);
         }
     }
 }

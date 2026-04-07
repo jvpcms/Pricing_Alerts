@@ -17,13 +17,18 @@ public class AppConfig
     public string SmtpUser => GetRequired("SMTP_USER");
     public string SmtpPassword => GetRequired("SMTP_PASSWORD");
     public string SmtpSender => GetRequired("SMTP_SENDER");
+    public string Ticker => GetRequired("TICKER");
+    public string AlertTo => GetRequired("ALERT_TO");
+    public decimal HighPrice => decimal.Parse(GetRequired("HIGH_PRICE"));
+    public decimal LowPrice => decimal.Parse(GetRequired("LOW_PRICE"));
+    public int CheckIntervalSeconds => int.TryParse(Environment.GetEnvironmentVariable("CHECK_INTERVAL_SECONDS"), out var v) ? v : 300;
 
     private static string GetRequired(string key) =>
         Environment.GetEnvironmentVariable(key)!;
 
     private static void ValidateRequired()
     {
-        string[] required = ["BRAPI_API_KEY", "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASSWORD", "SMTP_SENDER"];
+        string[] required = ["BRAPI_API_KEY", "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASSWORD", "SMTP_SENDER", "TICKER", "ALERT_TO", "HIGH_PRICE", "LOW_PRICE"];
 
         var missing = required
             .Where(k => string.IsNullOrEmpty(Environment.GetEnvironmentVariable(k)))
