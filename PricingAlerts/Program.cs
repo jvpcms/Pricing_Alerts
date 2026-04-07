@@ -15,7 +15,7 @@ if (args.Length != 3
 var ticker = args[0];
 var config = new AppConfig();
 
-IPricingProvider pricingProvider = PricingProviderFactory.GetPricingProvider(config, useMock: true);
+IPricingProvider pricingProvider = PricingProviderFactory.GetPricingProvider(config);
 IEmailProvider emailProvider = EmailProviderFactory.GetEmailProvider(config);
 
 var tracker = new PriceTracker(
