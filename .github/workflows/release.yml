@@ -1,0 +1,32 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Unix binary
+        run: |
+          docker build --build-arg RUNTIME=linux-x64 -t pricingalerts-builder -f PricingAlerts/Dockerfile.build .
+          docker create --name pricingalerts-tmp pricingalerts-builder
+          docker cp pricingalerts-tmp:/app/out/PricingAlerts ./pricing-alerts
+          docker rm pricingalerts-tmp
+          chmod +x ./pricing-alerts
+
+      - name: Build Windows binary
+        run: |
+          docker build --build-arg RUNTIME=win-x64 -t pricingalerts-builder-win -f PricingAlerts/Dockerfile.build .
+          docker create --name pricingalerts-tmp-win pricingalerts-builder-win
+          docker cp pricingalerts-tmp-win:/app/out/PricingAlerts.exe ./pricing-alerts.exe
+          docker rm pricingalerts-tmp-win
+
+      - name: Upload binaries to release
+        run: gh release upload ${{ github.event.release.tag_name }} ./pricing-alerts ./pricing-alerts.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
