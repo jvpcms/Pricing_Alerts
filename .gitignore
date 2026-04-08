@@ -1,3 +1,5 @@
 **/.env
 pricing-alerts
 pricing-alerts.exe
+pricing-alerts-macos-arm
+pricing-alerts-macos-intel
