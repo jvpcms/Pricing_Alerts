@@ -50,6 +50,8 @@ Providers are wired up via static factories and injected into `PriceTracker`, wh
 Requires Docker and make.
 
 ```bash
-make build-unix     # Linux/macOS
-make build-windows  # Windows
+make build-linux        # Linux
+make build-windows      # Windows
+make build-macos-arm    # macOS Apple Silicon
+make build-macos-intel  # macOS Intel
 ```

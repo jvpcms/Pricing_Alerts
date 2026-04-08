@@ -4,8 +4,8 @@ using PricingAlerts.Pricing;
 using PricingAlerts.PriceTracker;
 
 if (args.Length != 3
-    || !decimal.TryParse(args[1], out var lowPrice)
-    || !decimal.TryParse(args[2], out var highPrice))
+    || !decimal.TryParse(args[1], System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var lowPrice)
+    || !decimal.TryParse(args[2], System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var highPrice))
 {
     Console.Error.WriteLine("Usage: stock-quote-alert <ticker> <low_price> <high_price>");
     Console.Error.WriteLine("Example: stock-quote-alert PETR4 22.59 22.67");

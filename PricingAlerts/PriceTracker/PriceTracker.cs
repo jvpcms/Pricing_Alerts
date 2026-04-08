@@ -1,3 +1,4 @@
+using System.Globalization;
 using PricingAlerts.Email;
 using PricingAlerts.Pricing;
 
@@ -55,7 +56,11 @@ public class PriceTracker
             return;
         }
 
-        Console.WriteLine($"[PriceTracker] {_ticker} current price: R$ {price}");
+        var priceStr = price.ToString(CultureInfo.InvariantCulture);
+        var lowStr   = _lowPrice.ToString(CultureInfo.InvariantCulture);
+        var highStr  = _highPrice.ToString(CultureInfo.InvariantCulture);
+
+        Console.WriteLine($"[PriceTracker] {_ticker} current price: R$ {priceStr}");
 
         var newStatus = price < _lowPrice ? PriceStatus.Low
                       : price > _highPrice ? PriceStatus.High
@@ -70,9 +75,9 @@ public class PriceTracker
 
         var (subject, content) = newStatus switch
         {
-            PriceStatus.Low  => ($"{_ticker} Price Alert — Buy Signal",  $"{_ticker} is at R$ {price}, below the low threshold of R$ {_lowPrice}. Consider buying."),
-            PriceStatus.High => ($"{_ticker} Price Alert — Sell Signal", $"{_ticker} is at R$ {price}, above the high threshold of R$ {_highPrice}. Consider selling."),
-            _                => ($"{_ticker} Price Alert — Back to Normal", $"{_ticker} is back to R$ {price}, within the normal range (R$ {_lowPrice} – R$ {_highPrice})."),
+            PriceStatus.Low  => ($"{_ticker} Price Alert — Buy Signal",  $"{_ticker} is at R$ {priceStr}, below the low threshold of R$ {lowStr}. Consider buying."),
+            PriceStatus.High => ($"{_ticker} Price Alert — Sell Signal", $"{_ticker} is at R$ {priceStr}, above the high threshold of R$ {highStr}. Consider selling."),
+            _                => ($"{_ticker} Price Alert — Back to Normal", $"{_ticker} is back to R$ {priceStr}, within the normal range (R$ {lowStr} – R$ {highStr})."),
         };
 
         try
