@@ -6,16 +6,27 @@ public record TickerEntry(string Ticker, decimal LowPrice, decimal HighPrice);
 
 public static class CsvLoader
 {
+    private const string ExpectedHeader = "ticker,low,high";
+
     public static List<TickerEntry> Load(string path)
     {
         var entries = new List<TickerEntry>();
         var lines = File.ReadAllLines(path);
+        bool headerSeen = false;
 
         for (int i = 0; i < lines.Length; i++)
         {
             var line = lines[i].Trim();
             if (string.IsNullOrEmpty(line) || line.StartsWith('#'))
                 continue;
+
+            if (!headerSeen)
+            {
+                if (line != ExpectedHeader)
+                    throw new FormatException($"[CsvLoader] Expected header '{ExpectedHeader}' but got '{line}'");
+                headerSeen = true;
+                continue;
+            }
 
             var parts = line.Split(',');
             if (parts.Length != 3

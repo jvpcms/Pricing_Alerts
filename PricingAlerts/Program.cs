@@ -42,8 +42,8 @@ else if (args.Length == 0)
         return 1;
     }
 
-    IPricingProvider pricingProvider = PricingProviderFactory.GetPricingProvider(config);
-    IEmailProvider emailProvider = EmailProviderFactory.GetEmailProvider(config);
+    IPricingProvider pricingProvider = PricingProviderFactory.GetPricingProvider(config, useMock: true);
+    IEmailProvider emailProvider = EmailProviderFactory.GetEmailProvider(config, useMock: true);
 
     var trackers = entries.Select(e => new PriceTracker(
         e.Ticker, e.LowPrice, e.HighPrice,

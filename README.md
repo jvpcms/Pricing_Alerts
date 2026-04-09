@@ -19,7 +19,7 @@ Download the latest executable from [Releases](../../releases) and run:
 
 CSV format (`ticker,low,high`, one per line, `#` for comments):
 ```
-# ticker,low,high
+ticker,low,high
 PETR4,22.59,22.67
 VALE3,60.00,65.00
 ```
