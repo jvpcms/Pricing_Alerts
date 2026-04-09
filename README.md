@@ -51,7 +51,7 @@ Providers are instantiated via static factories and injected into `PriceTracker`
 
 **Polling with `PeriodicTimer`** — uses .NET's `PeriodicTimer` rather than a `Timer` callback or a `Task.Delay` loop. `PeriodicTimer` won't queue a new tick if the previous check is still running, preventing task accumulation under slow network conditions.
 
-**Concurrent batch mode** — in batch mode, each `PriceTracker` runs as an independent `Task` under `Task.WhenAll`. Price fetching and email delivery are both I/O-bound, so all tickers poll concurrently with no throughput penalty proportional to ticker count.
+**Bucket-based scheduling with a cyclic doubly-linked list** — in batch mode, tickers are distributed round-robin across a fixed number of buckets. Each bucket owns an independent `PeriodicTimer` and checks all its tickers concurrently via `Task.WhenAll` — price fetching and email delivery are I/O-bound, so checks within a bucket overlap with no throughput penalty. Buckets can be configured with different polling intervals, which maps naturally to assets with different volatility profiles: high-frequency tickers can be isolated in faster buckets without affecting others. The underlying structure is a cyclic doubly-linked list, giving O(1) node insertion and removal. This also supports split and merge operations to rebalance bucket sizes as tickers are added or removed during program execution.
 
 **Docker-based build** — binaries are compiled inside a Docker container and extracted with `docker cp`. The only host dependencies are Docker and make; no .NET SDK required.
 
