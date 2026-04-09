@@ -4,6 +4,8 @@ Monitors B3 stock tickers via [Brapi](https://brapi.dev) and sends email alerts 
 
 ## Running
 
+Download the latest executable from [Releases](../../releases), then:
+
 ```bash
 # Single ticker
 ./pricing-alerts PETR4 22.59 22.67
