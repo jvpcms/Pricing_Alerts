@@ -8,8 +8,8 @@ using PricingAlerts.PriceTracker;
 var config = new AppConfig();
 Logger.Configure(config.LogLevel);
 
-IPricingProvider pricingProvider = PricingProviderFactory.GetPricingProvider(config, useMock: true);
-IEmailProvider emailProvider = EmailProviderFactory.GetEmailProvider(config, useMock: true);
+IPricingProvider pricingProvider = PricingProviderFactory.GetPricingProvider(config);
+IEmailProvider emailProvider = EmailProviderFactory.GetEmailProvider(config);
 
 if (args.Length == 3
     && decimal.TryParse(args[1], System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var lowPrice)

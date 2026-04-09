@@ -34,7 +34,11 @@ SMTP_SENDER=sender@email.com
 
 ALERT_TO=destination@email.com
 CHECK_INTERVAL_SECONDS=300
+MAX_BUCKETS=10
+LOG_LEVEL=Info
 ```
+
+`LOG_LEVEL` accepts `Debug`, `Info`, or `Error`. Get a free Brapi API key at [brapi.dev](https://brapi.dev).
 
 ## Architecture
 
@@ -45,13 +49,11 @@ Provider-based design with constructor dependency injection. Each external conce
 
 Providers are instantiated via static factories and injected into `PriceTracker`. Swapping pricing sources or email backends requires only implementing the relevant interface.
 
-`PriceTracker` owns the polling loop and a state machine (`Normal / Low / High`). Alerts fire only on state transitions — a price that stays below the low threshold does not spam the recipient on every check.
+`PriceTracker` is a pure check-and-alert unit: it fetches the current price, updates a state machine (`Normal / Low / High`), and sends an alert on transitions. It owns no timer or loop. The polling loop lives in `Bucket`, which groups one or more trackers and drives them on its own schedule.
 
 ## Technical Decisions
 
-**Polling with `PeriodicTimer`** — uses .NET's `PeriodicTimer` rather than a `Timer` callback or a `Task.Delay` loop. `PeriodicTimer` won't queue a new tick if the previous check is still running, preventing task accumulation under slow network conditions.
-
-**Bucket-based scheduling with a cyclic doubly-linked list** — in batch mode, tickers are distributed round-robin across a fixed number of buckets. Each bucket owns an independent `PeriodicTimer` and checks all its tickers concurrently via `Task.WhenAll` — price fetching and email delivery are I/O-bound, so checks within a bucket overlap with no throughput penalty. Buckets can be configured with different polling intervals, which maps naturally to assets with different volatility profiles: high-frequency tickers can be isolated in faster buckets without affecting others. The underlying structure is a cyclic doubly-linked list, giving O(1) node insertion and removal. This also supports split and merge operations to rebalance bucket sizes as tickers are added or removed during program execution.
+**Bucket-based scheduling with a cyclic doubly-linked list** — tickers are distributed round-robin across a fixed number of buckets. Each bucket owns an independent `PeriodicTimer` — using `PeriodicTimer` rather than `Task.Delay` ensures a slow check never causes ticks to queue up. All tickers within a bucket are checked concurrently via `Task.WhenAll`; since price fetching and email delivery are I/O-bound, checks overlap with no throughput penalty. Buckets can run at different polling intervals, which maps naturally to assets with different volatility profiles. The underlying cyclic doubly-linked list gives O(1) insertion and removal, and supports split and merge operations to rebalance bucket sizes as tickers are added or removed during execution.
 
 **Docker-based build** — binaries are compiled inside a Docker container and extracted with `docker cp`. The only host dependencies are Docker and make; no .NET SDK required.
 
