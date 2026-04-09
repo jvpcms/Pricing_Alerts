@@ -49,8 +49,6 @@ Provider-based design with constructor dependency injection. Each external conce
 
 Providers are instantiated via static factories and injected into `PriceTracker`. Swapping pricing sources or email backends requires only implementing the relevant interface.
 
-`PriceTracker` is a pure check-and-alert unit: it fetches the current price, updates a state machine (`Normal / Low / High`), and sends an alert on transitions. It owns no timer or loop. The polling loop lives in `Bucket`, which groups one or more trackers and drives them on its own schedule.
-
 ## Technical Decisions
 
 **Bucket-based scheduling with a cyclic doubly-linked list** — tickers are distributed round-robin across a fixed number of buckets. Each bucket owns an independent `PeriodicTimer` — using `PeriodicTimer` rather than `Task.Delay` ensures a slow check never causes ticks to queue up. All tickers within a bucket are checked concurrently via `Task.WhenAll`; since price fetching and email delivery are I/O-bound, checks overlap with no throughput penalty. Buckets can run at different polling intervals, which maps naturally to assets with different volatility profiles. The underlying cyclic doubly-linked list gives O(1) insertion and removal, and supports split and merge operations to rebalance bucket sizes as tickers are added or removed during execution.
