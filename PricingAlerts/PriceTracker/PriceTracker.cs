@@ -13,7 +13,6 @@ public class PriceTracker
     private readonly IEmailProvider _emailProvider;
     private readonly IPricingProvider _pricingProvider;
 
-    private readonly int _intervalSeconds;
     private PriceStatus _status = PriceStatus.Normal;
 
     public PriceTracker(
@@ -22,8 +21,7 @@ public class PriceTracker
         decimal highPrice,
         string alertTo,
         IEmailProvider emailProvider,
-        IPricingProvider pricingProvider,
-        int intervalSeconds = 300)
+        IPricingProvider pricingProvider)
     {
         _ticker = ticker;
         _lowPrice = lowPrice;
@@ -31,19 +29,9 @@ public class PriceTracker
         _alertTo = alertTo;
         _emailProvider = emailProvider;
         _pricingProvider = pricingProvider;
-        _intervalSeconds = intervalSeconds;
     }
 
-    public async Task StartAsync()
-    {
-        await CheckPrice();
-
-        var timer = new PeriodicTimer(TimeSpan.FromSeconds(_intervalSeconds));
-        while (await timer.WaitForNextTickAsync())
-            await CheckPrice();
-    }
-
-    private async Task CheckPrice()
+    internal async Task CheckPrice()
     {
         decimal price;
         try

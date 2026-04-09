@@ -15,16 +15,10 @@ if (args.Length == 3
     IPricingProvider pricingProvider = PricingProviderFactory.GetPricingProvider(config);
     IEmailProvider emailProvider = EmailProviderFactory.GetEmailProvider(config);
 
-    var tracker = new PriceTracker(
-        ticker,
-        lowPrice,
-        highPrice,
-        config.AlertTo,
-        emailProvider,
-        pricingProvider,
-        config.CheckIntervalSeconds);
+    var list = new CyclicBucketList(bucketCount: 1, config.CheckIntervalSeconds, config.MaxBuckets);
+    list.AddTracker(new PriceTracker(ticker, lowPrice, highPrice, config.AlertTo, emailProvider, pricingProvider));
 
-    await tracker.StartAsync();
+    await Task.WhenAll(list.Nodes().Select(n => n.Value.StartAsync()));
 }
 else if (args.Length == 0)
 {
@@ -45,12 +39,15 @@ else if (args.Length == 0)
     IPricingProvider pricingProvider = PricingProviderFactory.GetPricingProvider(config, useMock: true);
     IEmailProvider emailProvider = EmailProviderFactory.GetEmailProvider(config, useMock: true);
 
-    var trackers = entries.Select(e => new PriceTracker(
-        e.Ticker, e.LowPrice, e.HighPrice,
-        config.AlertTo, emailProvider, pricingProvider,
-        config.CheckIntervalSeconds));
+    var list = new CyclicBucketList(
+        bucketCount: entries.Count,
+        config.CheckIntervalSeconds,
+        config.MaxBuckets);
 
-    await Task.WhenAll(trackers.Select(t => t.StartAsync()));
+    foreach (var e in entries)
+        list.AddTracker(new PriceTracker(e.Ticker, e.LowPrice, e.HighPrice, config.AlertTo, emailProvider, pricingProvider));
+
+    await Task.WhenAll(list.Nodes().Select(n => n.Value.StartAsync()));
 }
 else
 {

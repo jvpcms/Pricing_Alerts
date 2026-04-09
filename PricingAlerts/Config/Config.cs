@@ -19,6 +19,7 @@ public class AppConfig
     public string SmtpSender => GetRequired("SMTP_SENDER");
     public string AlertTo => GetRequired("ALERT_TO");
     public int CheckIntervalSeconds => int.TryParse(Environment.GetEnvironmentVariable("CHECK_INTERVAL_SECONDS"), out var v) ? v : 300;
+    public int MaxBuckets => int.TryParse(Environment.GetEnvironmentVariable("MAX_BUCKETS"), out var v) ? v : 10;
 
     private static string GetRequired(string key) =>
         Environment.GetEnvironmentVariable(key)!;
