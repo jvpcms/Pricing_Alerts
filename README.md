@@ -1,40 +1,27 @@
 # Pricing Alerts
 
-Monitors B3 stock tickers and sends email alerts when prices cross high or low thresholds. Checks every 5 minutes by default.
+Monitors B3 stock tickers via [Brapi](https://brapi.dev) and sends email alerts when prices cross configured thresholds. Supports single-ticker and batch modes.
 
 ## Running
 
-Download the latest executable from [Releases](../../releases) and run:
-
-**Single ticker:**
 ```bash
+# Single ticker
 ./pricing-alerts PETR4 22.59 22.67
-#                ticker low   high
-```
 
-**Batch mode** — place a `tickers.csv` next to the executable and run with no args:
-```bash
+# Batch mode — reads tickers.csv from the working directory
 ./pricing-alerts
 ```
 
-CSV format (`ticker,low,high`, one per line, `#` for comments):
+CSV format (`ticker,low,high` header required):
 ```
 ticker,low,high
 PETR4,22.59,22.67
 VALE3,60.00,65.00
 ```
 
-Each ticker runs as a concurrent async task — all price fetches for the current interval fire in parallel, so batch mode has the same latency overhead as a single ticker.
-
-## Dependencies
-
-- **Docker** — required to build the executable
-- **make** — to run build commands
-- An **SMTP server** to send emails
-
 ## Configuration
 
-Create a `.env` file in the same directory as the executable:
+`.env` file in the same directory as the executable:
 
 ```env
 BRAPI_API_KEY=your_brapi_key
@@ -49,20 +36,26 @@ ALERT_TO=destination@email.com
 CHECK_INTERVAL_SECONDS=300
 ```
 
-Get a free Brapi API key at [brapi.dev](https://brapi.dev). Any SMTP server works (Gmail, Outlook, SendGrid, etc.).
-
 ## Architecture
 
-Provider-based design with constructor dependency injection. Each concern is behind an interface with swappable implementations:
+Provider-based design with constructor dependency injection. Each external concern is behind an interface:
 
-- **`IPricingProvider`** — fetches stock prices (Brapi, Mock)
-- **`IEmailProvider`** — sends alerts (SMTP, Mock)
+- **`IPricingProvider`** — fetches stock prices (`BrapiPricingProvider`, `MockPricingProvider`)
+- **`IEmailProvider`** — sends alerts (`SmtpEmailProvider`, `MockEmailProvider`)
 
-Providers are wired up via static factories and injected into `PriceTracker`, which owns the polling loop and state machine. Adding a new pricing source or email backend only requires implementing the relevant interface and registering it in its factory.
+Providers are instantiated via static factories and injected into `PriceTracker`. Swapping pricing sources or email backends requires only implementing the relevant interface.
+
+`PriceTracker` owns the polling loop and a state machine (`Normal / Low / High`). Alerts fire only on state transitions — a price that stays below the low threshold does not spam the recipient on every check.
+
+## Technical Decisions
+
+**Polling with `PeriodicTimer`** — uses .NET's `PeriodicTimer` rather than a `Timer` callback or a `Task.Delay` loop. `PeriodicTimer` won't queue a new tick if the previous check is still running, preventing task accumulation under slow network conditions.
+
+**Concurrent batch mode** — in batch mode, each `PriceTracker` runs as an independent `Task` under `Task.WhenAll`. Price fetching and email delivery are both I/O-bound, so all tickers poll concurrently with no throughput penalty proportional to ticker count.
+
+**Docker-based build** — binaries are compiled inside a Docker container and extracted with `docker cp`. The only host dependencies are Docker and make; no .NET SDK required.
 
 ## Building from source
-
-Requires Docker and make.
 
 ```bash
 make build-linux        # Linux
