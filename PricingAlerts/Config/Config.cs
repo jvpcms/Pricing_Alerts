@@ -22,7 +22,7 @@ public class AppConfig
     public string AlertTo => GetRequired("ALERT_TO");
     public int CheckIntervalSeconds => int.TryParse(Environment.GetEnvironmentVariable("CHECK_INTERVAL_SECONDS"), out var v) ? v : 300;
     public int MaxBuckets => int.TryParse(Environment.GetEnvironmentVariable("MAX_BUCKETS"), out var v) ? v : 10;
-    public LogLevel LogLevel => Enum.TryParse<LogLevel>(Environment.GetEnvironmentVariable("LOG_LEVEL"), ignoreCase: true, out var v) ? v : LogLevel.Debug;
+    public LogLevel LogLevel => Enum.TryParse<LogLevel>(Environment.GetEnvironmentVariable("LOG_LEVEL"), ignoreCase: true, out var v) ? v : LogLevel.Info;
 
     private static string GetRequired(string key) =>
         Environment.GetEnvironmentVariable(key)!;
