@@ -2,6 +2,15 @@
 
 Monitors a B3 stock ticker and sends an email alert when the price crosses a high or low threshold. Checks every 5 minutes by default.
 
+## Running
+
+Download the latest executable from [Releases](../../releases) and run:
+
+```bash
+./pricing-alerts PETR4 22.59 22.67
+#                ticker low   high
+
+```
 ## Dependencies
 
 - **Docker** — required to build the executable
@@ -26,15 +35,6 @@ CHECK_INTERVAL_SECONDS=300
 ```
 
 Get a free Brapi API key at [brapi.dev](https://brapi.dev). Any SMTP server works (Gmail, Outlook, SendGrid, etc.).
-
-## Running
-
-Download the latest executable from [Releases](../../releases) and run:
-
-```bash
-./pricing-alerts PETR4 22.59 22.67
-#                ticker low   high
-```
 
 ## Architecture
 
