@@ -1,16 +1,31 @@
 # Pricing Alerts
 
-Monitors a B3 stock ticker and sends an email alert when the price crosses a high or low threshold. Checks every 5 minutes by default.
+Monitors B3 stock tickers and sends email alerts when prices cross high or low thresholds. Checks every 5 minutes by default.
 
 ## Running
 
 Download the latest executable from [Releases](../../releases) and run:
 
+**Single ticker:**
 ```bash
 ./pricing-alerts PETR4 22.59 22.67
 #                ticker low   high
-
 ```
+
+**Batch mode** — place a `tickers.csv` next to the executable and run with no args:
+```bash
+./pricing-alerts
+```
+
+CSV format (`ticker,low,high`, one per line, `#` for comments):
+```
+# ticker,low,high
+PETR4,22.59,22.67
+VALE3,60.00,65.00
+```
+
+Each ticker runs as a concurrent async task — all price fetches for the current interval fire in parallel, so batch mode has the same latency overhead as a single ticker.
+
 ## Dependencies
 
 - **Docker** — required to build the executable
