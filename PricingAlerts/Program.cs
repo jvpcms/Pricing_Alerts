@@ -1,10 +1,15 @@
 using PricingAlerts;
+using PricingAlerts.Logging;
 using PricingAlerts.Config;
 using PricingAlerts.Email;
 using PricingAlerts.Pricing;
 using PricingAlerts.PriceTracker;
 
 var config = new AppConfig();
+Logger.Configure(config.LogLevel);
+
+IPricingProvider pricingProvider = PricingProviderFactory.GetPricingProvider(config, useMock: true);
+IEmailProvider emailProvider = EmailProviderFactory.GetEmailProvider(config, useMock: true);
 
 if (args.Length == 3
     && decimal.TryParse(args[1], System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var lowPrice)
@@ -12,12 +17,10 @@ if (args.Length == 3
 {
     var ticker = args[0];
 
-    IPricingProvider pricingProvider = PricingProviderFactory.GetPricingProvider(config);
-    IEmailProvider emailProvider = EmailProviderFactory.GetEmailProvider(config);
-
     var list = new CyclicBucketList(bucketCount: 1, config.CheckIntervalSeconds, config.MaxBuckets);
     list.AddTracker(new PriceTracker(ticker, lowPrice, highPrice, config.AlertTo, emailProvider, pricingProvider));
 
+    Logger.Info($"Started with 1 ticker and {list.BucketCount} bucket(s)");
     await Task.WhenAll(list.Nodes().Select(n => n.Value.StartAsync()));
 }
 else if (args.Length == 0)
@@ -36,9 +39,6 @@ else if (args.Length == 0)
         return 1;
     }
 
-    IPricingProvider pricingProvider = PricingProviderFactory.GetPricingProvider(config, useMock: true);
-    IEmailProvider emailProvider = EmailProviderFactory.GetEmailProvider(config, useMock: true);
-
     var list = new CyclicBucketList(
         bucketCount: entries.Count,
         config.CheckIntervalSeconds,
@@ -47,6 +47,7 @@ else if (args.Length == 0)
     foreach (var e in entries)
         list.AddTracker(new PriceTracker(e.Ticker, e.LowPrice, e.HighPrice, config.AlertTo, emailProvider, pricingProvider));
 
+    Logger.Info($"Started with {entries.Count} ticker(s) and {list.BucketCount} bucket(s)");
     await Task.WhenAll(list.Nodes().Select(n => n.Value.StartAsync()));
 }
 else

@@ -1,3 +1,5 @@
+using PricingAlerts.Logging;
+
 namespace PricingAlerts.Pricing.Providers;
 
 public class MockPricingProvider : IPricingProvider
@@ -7,7 +9,7 @@ public class MockPricingProvider : IPricingProvider
     public Task<decimal> GetCurrentPrice(string ticker)
     {
         var price = 100m + _rng.Next(-50, 51);
-        Console.WriteLine($"[MockPricingProvider] GetCurrentPrice called for '{ticker}' -> {price}");
+        Logger.Debug($"[MockPricingProvider] GetCurrentPrice called for '{ticker}' -> {price}");
         return Task.FromResult(price);
     }
 }

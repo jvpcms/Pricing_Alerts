@@ -1,4 +1,5 @@
 using System.Globalization;
+using PricingAlerts.Logging;
 using PricingAlerts.Email;
 using PricingAlerts.Pricing;
 
@@ -6,6 +7,7 @@ namespace PricingAlerts.PriceTracker;
 
 public class PriceTracker
 {
+    public string Ticker { get; }
     private readonly string _ticker;
     private readonly decimal _lowPrice;
     private readonly decimal _highPrice;
@@ -23,6 +25,7 @@ public class PriceTracker
         IEmailProvider emailProvider,
         IPricingProvider pricingProvider)
     {
+        Ticker = ticker;
         _ticker = ticker;
         _lowPrice = lowPrice;
         _highPrice = highPrice;
@@ -40,7 +43,7 @@ public class PriceTracker
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[PriceTracker] Failed to fetch price for '{_ticker}': {ex.Message}");
+            Logger.Error($"[PriceTracker] Failed to fetch price for '{_ticker}': {ex.Message}");
             return;
         }
 
@@ -48,13 +51,13 @@ public class PriceTracker
         var lowStr   = _lowPrice.ToString(CultureInfo.InvariantCulture);
         var highStr  = _highPrice.ToString(CultureInfo.InvariantCulture);
 
-        Console.WriteLine($"[PriceTracker] {_ticker} current price: R$ {priceStr}");
+        Logger.Debug($"[PriceTracker] {_ticker} current price: R$ {priceStr}");
 
         var newStatus = price < _lowPrice ? PriceStatus.Low
                       : price > _highPrice ? PriceStatus.High
                       : PriceStatus.Normal;
 
-        Console.WriteLine($"[PriceTracker] Status: {_status} -> {newStatus}");
+        Logger.Debug($"[PriceTracker] {_ticker} status: {_status} -> {newStatus}");
 
         if (newStatus == _status)
             return;
@@ -68,13 +71,18 @@ public class PriceTracker
             _                => ($"{_ticker} Price Alert — Back to Normal", $"{_ticker} is back to R$ {priceStr}, within the normal range (R$ {lowStr} – R$ {highStr})."),
         };
 
+        if (newStatus == PriceStatus.High)
+            Logger.Info($"[PriceTracker] {_ticker} crossed above high threshold: R$ {priceStr} > R$ {highStr}");
+        else if (newStatus == PriceStatus.Low)
+            Logger.Info($"[PriceTracker] {_ticker} crossed below low threshold: R$ {priceStr} < R$ {lowStr}");
+
         try
         {
             await _emailProvider.SendEmail(_alertTo, subject, content);
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[PriceTracker] Failed to send email: {ex.Message}");
+            Logger.Error($"[PriceTracker] Failed to send email: {ex.Message}");
         }
     }
 }
