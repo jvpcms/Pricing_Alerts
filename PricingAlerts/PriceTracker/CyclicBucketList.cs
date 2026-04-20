@@ -12,14 +12,13 @@ public class CyclicBucketList
     {
         BucketCount = Math.Clamp(bucketCount, 1, maxBuckets);
 
-        // DEBUG: random interval per bucket (5–10s) to observe independent scheduling
-        _head = new BucketNode(new Bucket(index: 0, intervalSeconds: Random.Shared.Next(5, 11)));
+        _head = new BucketNode(new Bucket(index: 0, intervalSeconds: intervalSeconds));
         _head.Next = _head;
         _head.Prev = _head;
 
         for (int i = 1; i < BucketCount; i++)
         {
-            var node = new BucketNode(new Bucket(index: i, intervalSeconds: Random.Shared.Next(5, 11)));
+            var node = new BucketNode(new Bucket(index: i, intervalSeconds: intervalSeconds));
             var tail = _head.Prev;
             tail.Next = node;
             node.Prev = tail;
